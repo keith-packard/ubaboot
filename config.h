@@ -72,16 +72,44 @@
 // Note: You must still set VENDOR_ID and PRODUCT_ID above.
 
 // Adafruit Feather 32u4 Basic Proto
-//#define OSC_MHZ_8
-//#define USE_LED
-//#define LED_DDR_REG    DDRC
-//#define LED_PORT_REG   PORTC
-//#define LED_IONUM      7
+#ifdef FEATHER
+#define OSC_MHZ_8
+#define USE_LED
+#define LED_DDR_REG    DDRC
+#define LED_PORT_REG   PORTC
+#define LED_IONUM      7
+#endif
 
 // Teensy 2.0
-//#define OSC_MHZ_16
-//#define USB_REGULATOR
-//#define USE_LED
-//#define LED_DDR_REG    DDRD
-//#define LED_PORT_REG   PORTD
-//#define LED_IONUM      6
+#ifdef TEENSY
+#define OSC_MHZ_16
+#define USB_REGULATOR
+#define USE_LED
+#define LED_DDR_REG    DDRD
+#define LED_PORT_REG   PORTD
+#define LED_IONUM      6
+#endif
+
+#ifdef ITSYBITSY3V
+#define OSC_MHZ_8
+#define USE_LED
+#define LED_DDR_REG    DDRC
+#define LED_PORT_REG   PORTC
+#define LED_IONUM      7
+#define USB_REGULATOR
+#endif
+
+#ifdef ITSYBITSY5V
+#define OSC_MHZ_16
+#define USE_LED
+#define LED_DDR_REG    DDRC
+#define LED_PORT_REG   PORTC
+#define LED_IONUM      7
+#define USB_REGULATOR
+#endif
+
+#ifdef UDUINO
+#define OSC_MHZ_16
+#define USB_REGULATOR
+#endif
+
