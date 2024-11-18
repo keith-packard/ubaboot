@@ -174,7 +174,9 @@ class UbabootDevice(object):
             block = pgm[offset:offset+blksz]
             padding = ((len(block) + blksz - 1) & ~(blksz-1)) - len(block)
             block += bytearray(b'\xff') * padding
+            print('.', end='', flush=True)
             self.__dev_write(cmd, base+offset, 0, block)
+        print('done')
 
 def main():
     args = parse_args()
