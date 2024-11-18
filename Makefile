@@ -28,8 +28,8 @@ MAKEFILE = Makefile
 
 AVRDUDE_PROGRAMMER = -c usbtiny -B10
 AVRDUDE_FLAGS = -p $(MCU) $(AVRDUDE_PORT) $(AVRDUDE_PROGRAMMER)
-AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-AVRDUDE_VERIFY_FLASH = -U flash:v:$(TARGET).hex
+AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex -U hfuse:w:0x9e:m
+AVRDUDE_VERIFY_FLASH = -U flash:v:$(TARGET).hex -U hfuse:v:0x9e:m
 
 CFLAGS += -std=gnu11
 CFLAGS += -Os -g
