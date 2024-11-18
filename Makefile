@@ -18,19 +18,23 @@
 # For best results use a recent version of GNU make.
 # Tested with GNU Make 4.1
 
+TOP ?= .
 MCU = atmega32u4
 FORMAT = ihex
-TARGET = ubaboot
-SRCS += $(TARGET).S
+TARGET ?= ubaboot
+SRCS += ubaboot.S
 SRCS += usbdesc.c
-LDMAP = $(TARGET).lds
+LDMAP = $(TOP)/ubaboot.lds
 MAKEFILE = Makefile
+
+vpath % $(TOP)
 
 AVRDUDE_PROGRAMMER = -c usbtiny -B10
 AVRDUDE_FLAGS = -p $(MCU) $(AVRDUDE_PORT) $(AVRDUDE_PROGRAMMER)
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex -U hfuse:w:0x9e:m
 AVRDUDE_VERIFY_FLASH = -U flash:v:$(TARGET).hex -U hfuse:v:0x9e:m
 
+CFLAGS += $(TARGET_CFLAGS)
 CFLAGS += -std=gnu11
 CFLAGS += -Os -g
 CFLAGS += -D_GNU_SOURCE
@@ -57,7 +61,7 @@ OBJS += $(patsubst %.c,%.o,$(filter %.c,$(SRCS)))
 OBJS += $(patsubst %.S,%.o,$(filter %.S,$(SRCS)))
 DEPS += $(OBJS:.o=.d)
 
-all: build
+all: subdirs
 build: elf hex lss sym
 elf: $(TARGET).elf
 hex: $(TARGET).hex
@@ -104,9 +108,51 @@ endef
 	$(AVR_CC) -MD -c $(CFLAGS) $< -o $@
 	@$(mkdeps)
 
-clean:
+clean: clean-local subdirs-clean subdirs-rm
+
+clean-local:
 	$(RM) $(TARGET).hex $(TARGET).elf \
 		$(TARGET).map $(TARGET).sym $(TARGET).lss \
 		$(OBJS) $(DEPS)
 
-.PHONY: all build elf hex lss sym clean
+BINDIR=/usr/local/bin
+LIBDIR=/usr/local/share/ubaboot
+
+install: install-bin subdirs-install
+
+install-bin: ubaboot.py
+	install -D ubaboot.py $(BINDIR)/ubaboot
+
+install-hex: $(TARGET).hex
+	install -D $(TARGET).hex -m 644 $(LIBDIR)/$(TARGET).hex
+
+TARGETS=feather teensy itsybitsy3v itsybitsy5v uduino
+
+subdirs:
+	+for target in $(TARGETS); do \
+		mkdir -p $${target}; \
+		def=`echo $${target} | tr a-z A-Z`; \
+		(cd $${target} && make TOP=.. TARGET=ubaboot-$${target} TARGET_CFLAGS=-D$${def} -f ../Makefile hex) || exit 1; \
+		cp $${target}/ubaboot-$${target}.hex .; \
+	done
+
+subdirs-install:
+	+for target in $(TARGETS); do \
+		mkdir -p $${target}; \
+		def=`echo $${target} | tr a-z A-Z`; \
+		(cd $${target} && make TOP=.. TARGET=ubaboot-$${target} TARGET_CFLAGS=-D$${def} -f ../Makefile install-hex) || exit 1; \
+	done
+
+subdirs-clean:
+	+for target in $(TARGETS); do \
+		mkdir -p $${target}; \
+		def=`echo $${target} | tr a-z A-Z`; \
+		(cd $${target} && make TOP=.. TARGET=ubaboot-$${target} TARGET_CFLAGS=-D$${def} -f ../Makefile clean-local) || exit 1; \
+	done
+
+subdirs-rm: subdirs-clean
+	+for target in $(TARGETS); do \
+		rmdir $${target}; \
+	done
+
+.PHONY: all build elf hex lss sym clean clean-local subdirs subdirs-install subdirs-clean
